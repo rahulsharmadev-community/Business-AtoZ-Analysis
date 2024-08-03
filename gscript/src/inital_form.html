@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      padding: 8px;
+      color: #333;
+    }
+
+    p {
+      font-size: 16px;
+      margin: 10px 0;
+    }
+
+    input[type="number"],
+    input[type="button"],
+    input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      font-size: 14px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+
+    input[type="checkbox"] {
+      margin-right: 5px;
+    }
+
+    input[type="button"] {
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    input[type="button"]:hover {
+      background-color: #0056b3;
+    }
+
+    input[type="button"]:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+
+    .month-field {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .month-field label {
+      display: flex;
+      align-items: center;
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="form-container">
+    <div class="input-group">
+      <p>Year</p>
+      <input type="number" id="year" placeholder="e.g., 2024" value="2024" max="9999" required>
+    </div>
+
+    <div class="input-group">
+      <p>Header</p>
+      <input type="text" id="header" value = "EMPLOYEE"  placeholder="e.g., Employee" required>
+    </div>
+
+    <div class="input-group">
+      <p>Sub Header</p>
+      <input type="text" id="sub_headers" value = "DEPARTMENT, TEAM, EMP_ID, EMP_NAME" placeholder="e.g., DEPARTMENT, TEAM, EMP_ID, EMP_NAME" required>
+    </div>
+
+    <div class="input-group">
+      <p>Attributes</p>
+      <input type="text" id="attributes" value ="TIME_IN,TIME_OUT,BREAK,ATT_STATUS,IS_APPROVED,  " placeholder="e.g., ARRIVAL_TIME, ATT_STATUS, IS_APPROVED" required>
+    </div>
+    <br>
+    <p>Months</p>
+    <div id="monthFields" class="month-field">
+      <label><input type="checkbox" value="JAN" checked>JAN</label>
+      <label><input type="checkbox" value="FEB" checked>FEB</label>
+      <label><input type="checkbox" value="MAR" checked>MAR</label>
+      <label><input type="checkbox" value="APR" checked>APR</label>
+      <label><input type="checkbox" value="MAY" checked>MAY</label>
+      <label><input type="checkbox" value="JUN" checked>JUN</label>
+      <label><input type="checkbox" value="JUL" checked>JUL</label>
+      <label><input type="checkbox" value="AUG" checked>AUG</label>
+      <label><input type="checkbox" value="SEP" checked>SEP</label>
+      <label><input type="checkbox" value="OCT" checked>OCT</label>
+      <label><input type="checkbox" value="NOV" checked>NOV</label>
+      <label><input type="checkbox" value="DEC" checked>DEC</label>
+    </div>
+    <br><br>
+    <input type="button" value="Submit" onclick="submitForm()" id="submitButton" disabled>
+  </div>
+
+  <script>
+    function validateForm() {
+      const year = document.getElementById('year').value;
+      const header = document.getElementById('header').value.trim();
+      const subHeaders = document.getElementById('sub_headers').value.trim();
+      const attributes = document.getElementById('attributes').value.trim();
+      const monthElements = document.querySelectorAll('#monthFields input:checked');
+
+      const isValidYear = year && year > 0 && year <= 9999;
+      const isValidHeader = header !== '';
+      const isValidSubHeaders = subHeaders.split(',').map(e => e.trim()).filter(e => isNaN(e) && e !== '').length > 0;
+      const isValidAttributes = attributes.split(',').map(e => e.trim()).filter(e => isNaN(e) && e !== '').length > 0;
+      const isValidMonths = monthElements.length > 0;
+
+      document.getElementById('submitButton').disabled = !(isValidYear && isValidHeader && isValidSubHeaders && isValidAttributes && isValidMonths);
+    }
+
+    document.getElementById('year').addEventListener('input', validateForm);
+    document.getElementById('header').addEventListener('input', validateForm);
+    document.getElementById('sub_headers').addEventListener('input', validateForm);
+    document.getElementById('attributes').addEventListener('input', validateForm);
+    document.querySelectorAll('#monthFields input[type="checkbox"]').forEach(checkbox => {
+      checkbox.addEventListener('change', validateForm);
+    });
+
+    function submitForm() {
+      const monthElements = document.querySelectorAll('#monthFields input:checked');
+      try {
+        let formData = {
+          year: document.getElementById('year').value,
+          selectedMonths: Array.from(monthElements).map(el => el.value),
+          header: document.getElementById('header').value.trim(),
+          subHeaders: document.getElementById('sub_headers').value.split(',').map((e) => e.trim()).filter(e => isNaN(e) && e !== ''),
+          attributes: document.getElementById('attributes').value.split(',').map((e) => e.trim()).filter(e => isNaN(e) && e !== '')
+        };
+
+        // Calling Google Apps Script function with form data
+        google.script.run._createSheet(formData);
+      } catch (e) {
+        console.error('Error during form submission:', e);
+      }
+    }
+  </script>
+</body>
+
+</html>

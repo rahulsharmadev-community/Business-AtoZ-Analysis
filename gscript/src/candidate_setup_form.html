@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            padding: 8px;
+            color: #333;
+        }
+
+        p {
+            font-size: 16px;
+            margin: 10px 0;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        input[type="number"],
+        input[type="button"],
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            font-size: 14px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        input[type="checkbox"] {
+            margin-right: 5px;
+
+        }
+
+        input[type="button"] {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        input[type="button"]:hover {
+            background-color: #0056b3;
+        }
+
+        input[type="button"]:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+
+        .month-field {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .month-field label {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="form-container">
+        <div class="input-group">
+            <p>Candidate Spreadsheet</p>
+            <input type="text" id="spreadsheet_id" value="1KTya25EFb6V00MYIFsl2Ns4ePc8pVF74Kf9CW-XH9C0"
+                placeholder="e.g., URL/Sheet ID" required>
+        </div>
+
+        <div class="input-group">
+            <p>Sheet Name</p>
+            <input type="text" id="sheet_name" value="LIVE" placeholder="e.g., Sheet1" required>
+        </div>
+
+        <div class="input-group">
+            <p>Start From</p>
+            <input type="text" id="start_cell" value="A2" placeholder="e.g., A2" required>
+        </div>
+
+        <div class="input-group">
+            <p>Select Column</p>
+            <input type="text" id="select_col" value="8,9,1,2" placeholder="e.g., 1,2,3" required>
+        </div>
+
+        <div class="input-group">
+            <p>Sort By Column</p>
+            <input type="text" id="sort_col" value="9" placeholder="e.g., 9" required>
+        </div>
+
+        <div class="input-group">
+            <label><input type="checkbox" id="sort" checked> Ascending</label>
+        </div>
+        <br>
+        <div class="input-group">
+            <p>Months</p>
+            <div id="monthFields" class="month-field">
+                <label><input type="checkbox" value="JAN">JAN</label>
+                <label><input type="checkbox" value="FEB">FEB</label>
+                <label><input type="checkbox" value="MAR">MAR</label>
+                <label><input type="checkbox" value="APR">APR</label>
+                <label><input type="checkbox" value="MAY">MAY</label>
+                <label><input type="checkbox" value="JUN">JUN</label>
+                <label><input type="checkbox" value="JUL">JUL</label>
+                <label><input type="checkbox" value="AUG">AUG</label>
+                <label><input type="checkbox" value="SEP">SEP</label>
+                <label><input type="checkbox" value="OCT">OCT</label>
+                <label><input type="checkbox" value="NOV">NOV</label>
+                <label><input type="checkbox" value="DEC">DEC</label>
+            </div>
+        </div>
+        <br><br>
+        <div class="input-group">
+            <input type="button" value="Submit" onclick="submitForm()" id="submitButton" disabled>
+        </div>
+    </div>
+
+    <script>
+        function validateForm() {
+            const fields = [
+                'spreadsheet_id',
+                'sheet_name',
+                'start_cell',
+                'select_col',
+                'sort_col'
+            ];
+
+            const allFilled = fields.every(fieldId => {
+                const value = document.getElementById(fieldId).value.trim();
+                return value !== '';
+            });
+
+            const selectedMonths = document.querySelectorAll('#monthFields input[type="checkbox"]:checked').length;
+            const submitButton = document.getElementById('submitButton');
+
+            submitButton.disabled = !allFilled || selectedMonths === 0 || selectedMonths > 4;
+        }
+        function limitMonthSelection() {
+            const checkedBoxes = document.querySelectorAll('#monthFields input[type="checkbox"]:checked');
+            if (checkedBoxes.length >= 4) {
+                document.querySelectorAll('#monthFields input[type="checkbox"]').forEach(checkbox => {
+                    if (!checkbox.checked) {
+                        checkbox.disabled = true;
+                    }
+                });
+            } else {
+                document.querySelectorAll('#monthFields input[type="checkbox"]').forEach(checkbox => {
+                    checkbox.disabled = false;
+                });
+            }
+        }
+
+        function submitForm() {
+            try {
+                const months = Array.from(document.querySelectorAll('#monthFields input[type="checkbox"]:checked'))
+                    .map(checkbox => checkbox.value);
+                const selectedCols = document.getElementById('select_col').value.split(",").map(e => e.trim())
+                    .filter(e => !isNaN(e) && e !== '');
+
+                const formData = {
+                    spreadsheetId: document.getElementById('spreadsheet_id').value.trim(),
+                    sheetName: document.getElementById('sheet_name').value.trim(),
+                    startCell: document.getElementById('start_cell').value.trim(),
+                    selectedCols: selectedCols,
+                    sortCol: document.getElementById('sort_col').value.trim(),
+                    sortAscending: document.getElementById('sort').checked,
+                    months: months
+                };
+
+                google.script.run._importCandidate(formData);
+            } catch (e) {
+                console.log(e);
+            }
+        }
+
+        // Attach event listeners to month checkboxes to limit selection
+        document.querySelectorAll('#monthFields input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', limitMonthSelection);
+        });
+
+        // Attach event listeners to form fields and checkboxes
+        document.querySelectorAll('input[type="text"], input[type="number"], input[type="checkbox"]').forEach(input => {
+            input.addEventListener('input', validateForm);
+        });
+
+        // Initial validation to set button state based on pre-filled data
+        validateForm();
+
+    </script>
+</body>
+
+</html>

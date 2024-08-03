@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
+      h2 {
+        color: #333;
+        text-align: center;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th, td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: center;
+      }
+      th {
+        background-color: #4CAF50;
+        color: white;
+      }
+      tr:nth-child(even) {
+        background-color: #f2f2f2;
+      }
+      tr:hover {
+        background-color: #ddd;
+      }
+      td, th {
+        font-size: 14px;
+      }
+      #total {
+        font-weight: bold;
+        background-color: #4CAF50;
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="sheetInfo">
+      Loading...
+    </div>
+    <script>
+      function numberWithCommas(x) {
+        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      }
+
+      function displaySheetInfo(sheetInfo, totalCells) {
+        let html = '<table>';
+        html += '<tr><th>Sheet Name</th><th>Rows</th><th>Columns</th><th>Cells</th></tr>';
+        sheetInfo.forEach(sheet => {
+          html += `<tr>
+                    <td>${sheet.name}</td>
+                    <td>${numberWithCommas(sheet.rows)}</td>
+                    <td>${numberWithCommas(sheet.columns)}</td>
+                    <td>${numberWithCommas(sheet.cells)}</td>
+                  </tr>`;
+        });
+        html += `<tr id="total">
+                  <td colspan="3" style="text-align: right;"><strong>Total Cells</strong></td>
+                  <td><strong>${numberWithCommas(totalCells)}</strong></td>
+                </tr>`;
+        html += '</table>';
+        document.getElementById('sheetInfo').innerHTML = html;
+      }
+
+      google.script.run.withSuccessHandler(function(data) {
+        displaySheetInfo(data.sheetInfo, data.totalCells);
+      }).getSheetInfo();
+    </script>
+  </body>
+</html>
